@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/fatih/color"
 )
 
 type jc struct {
-	indent string
-	writer io.Writer
+	indent      string
+	writer      io.Writer
+	keyColor    *color.Color
+	numberColor *color.Color
+	stringColor *color.Color
+	boolColor   *color.Color
 }
 
 func New(opts ...Option) *jc {
@@ -31,7 +37,7 @@ func (j *jc) Colorize(str string) error {
 	if err := j.parse(v, 0); err != nil {
 		return err
 	}
-	if err := j.writeln(); err != nil {
+	if err := j.writeln(nil); err != nil {
 		return err
 	}
 	return nil
@@ -39,7 +45,7 @@ func (j *jc) Colorize(str string) error {
 
 func (j *jc) indentation(depth int) (err error) {
 	for i := 0; i < depth; i++ {
-		err = j.write(j.indent)
+		err = j.write(nil, j.indent)
 		if err != nil {
 			return err
 		}
@@ -51,13 +57,13 @@ func (j *jc) parse(v interface{}, depth int) error {
 	var err error
 	switch val := v.(type) {
 	case float64:
-		err = j.writef("%v", val)
+		err = j.writef(j.numberColor, "%v", val)
 	case string:
-		err = j.writef("%q", val)
+		err = j.writef(j.stringColor, "%q", val)
 	case bool:
-		err = j.writef("%v", val)
+		err = j.writef(j.boolColor, "%v", val)
 	case map[string]interface{}:
-		err = j.writeln("{")
+		err = j.writeln(nil, "{")
 		if err != nil {
 			return err
 		}
@@ -71,7 +77,9 @@ func (j *jc) parse(v interface{}, depth int) error {
 				return err
 			}
 
-			err = j.writef(`%q: `, k)
+			j.writef(j.keyColor, "%q", k)
+			j.write(nil, ": ")
+
 			if err != nil {
 				return err
 			}
@@ -81,12 +89,12 @@ func (j *jc) parse(v interface{}, depth int) error {
 				return err
 			}
 			if i < count-1 {
-				err = j.write(",")
+				err = j.write(nil, ",")
 				if err != nil {
 					return err
 				}
 			}
-			err = j.writeln()
+			err = j.writeln(nil)
 			if err != nil {
 				return err
 			}
@@ -98,9 +106,9 @@ func (j *jc) parse(v interface{}, depth int) error {
 			return err
 		}
 
-		err = j.write("}")
+		err = j.write(nil, "}")
 	case []interface{}:
-		err = j.writeln("[")
+		err = j.writeln(nil, "[")
 		if err != nil {
 			return err
 		}
@@ -117,13 +125,13 @@ func (j *jc) parse(v interface{}, depth int) error {
 			}
 
 			if i < len(val)-1 {
-				err = j.write(",")
+				err = j.write(nil, ",")
 				if err != nil {
 					return err
 				}
 			}
 
-			err = j.writeln()
+			err = j.writeln(nil)
 			if err != nil {
 				return err
 			}
@@ -133,7 +141,7 @@ func (j *jc) parse(v interface{}, depth int) error {
 			return err
 		}
 
-		err = j.write("]")
+		err = j.write(nil, "]")
 	default:
 		return fmt.Errorf("unknown type: %v", val)
 	}
@@ -144,21 +152,32 @@ func (j *jc) parse(v interface{}, depth int) error {
 	return nil
 }
 
-func (j *jc) _write(s string) error {
-	if _, err := j.writer.Write([]byte(s)); err != nil {
-		return err
+func (j *jc) write(c *color.Color, a ...interface{}) error {
+	var err error
+	if c != nil {
+		_, err = c.Fprint(j.writer, a...)
+	} else {
+		_, err = fmt.Fprint(j.writer, a...)
 	}
-	return nil
+	return err
 }
 
-func (j *jc) write(a ...interface{}) error {
-	return j._write(fmt.Sprint(a...))
+func (j *jc) writef(c *color.Color, f string, a ...interface{}) error {
+	var err error
+	if c != nil {
+		_, err = c.Fprintf(j.writer, f, a...)
+	} else {
+		_, err = fmt.Fprintf(j.writer, f, a...)
+	}
+	return err
 }
 
-func (j *jc) writef(f string, args ...interface{}) error {
-	return j._write(fmt.Sprintf(f, args...))
-}
-
-func (j *jc) writeln(a ...interface{}) error {
-	return j._write(fmt.Sprintln(a...))
+func (j *jc) writeln(c *color.Color, a ...interface{}) error {
+	var err error
+	if c != nil {
+		_, err = c.Fprintln(j.writer, a...)
+	} else {
+		_, err = fmt.Fprintln(j.writer, a...)
+	}
+	return err
 }
