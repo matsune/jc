@@ -9,15 +9,13 @@ import (
 
 type jc struct {
 	indent string
-	depth  int
-	io.Writer
+	writer io.Writer
 }
 
 func New(opts ...Option) *jc {
 	j := &jc{
 		indent: "\t",
-		depth:  0,
-		Writer: os.Stdout,
+		writer: os.Stdout,
 	}
 	for _, opt := range opts {
 		opt(j)
@@ -25,17 +23,12 @@ func New(opts ...Option) *jc {
 	return j
 }
 
-func (j *jc) reset() {
-	j.depth = 0
-}
-
 func (j *jc) Colorize(str string) error {
 	var v interface{}
 	if err := json.Unmarshal([]byte(str), &v); err != nil {
 		return err
 	}
-	j.reset()
-	if err := j.parse(v); err != nil {
+	if err := j.parse(v, 0); err != nil {
 		return err
 	}
 	if err := j.writeln(); err != nil {
@@ -44,8 +37,8 @@ func (j *jc) Colorize(str string) error {
 	return nil
 }
 
-func (j *jc) indentation() (err error) {
-	for i := 0; i < j.depth; i++ {
+func (j *jc) indentation(depth int) (err error) {
+	for i := 0; i < depth; i++ {
 		err = j.write(j.indent)
 		if err != nil {
 			return err
@@ -54,30 +47,36 @@ func (j *jc) indentation() (err error) {
 	return
 }
 
-func (j *jc) parse(v interface{}) (err error) {
+func (j *jc) parse(v interface{}, depth int) error {
+	var err error
 	switch val := v.(type) {
+	case float64:
+		err = j.writef("%v", val)
+	case string:
+		err = j.writef("%q", val)
+	case bool:
+		err = j.writef("%v", val)
 	case map[string]interface{}:
 		err = j.writeln("{")
 		if err != nil {
 			return err
 		}
-		j.depth++
 
 		count := len(val)
 		i := 0
 
 		for k, vv := range val {
-			err = j.indentation()
+			err = j.indentation(depth + 1)
 			if err != nil {
 				return err
 			}
 
-			err = j.writef(`"%s": `, k)
+			err = j.writef(`%q: `, k)
 			if err != nil {
 				return err
 			}
 
-			err = j.parse(vv)
+			err = j.parse(vv, depth+1)
 			if err != nil {
 				return err
 			}
@@ -94,32 +93,25 @@ func (j *jc) parse(v interface{}) (err error) {
 			i++
 		}
 
-		j.depth--
-		err = j.indentation()
+		err = j.indentation(depth)
 		if err != nil {
 			return err
 		}
 
 		err = j.write("}")
-	case float64:
-		err = j.writef("%v", val)
-	case string:
-		err = j.writef("\"%s\"", val)
-	case bool:
-		err = j.writef("%v", val)
 	case []interface{}:
 		err = j.writeln("[")
 		if err != nil {
 			return err
 		}
-		j.depth++
+
 		for i, vv := range val {
-			err = j.indentation()
+			err = j.indentation(depth + 1)
 			if err != nil {
 				return err
 			}
 
-			err = j.parse(vv)
+			err = j.parse(vv, depth+1)
 			if err != nil {
 				return err
 			}
@@ -136,8 +128,7 @@ func (j *jc) parse(v interface{}) (err error) {
 				return err
 			}
 		}
-		j.depth--
-		err = j.indentation()
+		err = j.indentation(depth)
 		if err != nil {
 			return err
 		}
@@ -146,14 +137,15 @@ func (j *jc) parse(v interface{}) (err error) {
 	default:
 		return fmt.Errorf("unknown type: %v", val)
 	}
+
 	if err != nil {
 		return err
 	}
-	return
+	return nil
 }
 
 func (j *jc) _write(s string) error {
-	if _, err := j.Write([]byte(s)); err != nil {
+	if _, err := j.writer.Write([]byte(s)); err != nil {
 		return err
 	}
 	return nil

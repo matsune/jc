@@ -21,5 +21,5 @@ func Writer(w io.Writer) Option {
 }
 
 func (j *jc) SetWriter(w io.Writer) {
-	j.Writer = w
+	j.writer = w
 }
