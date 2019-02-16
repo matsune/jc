@@ -1,0 +1,14 @@
+{
+    "string": "hogehoge",
+    "int": 100,
+    "float": 3.14159265,
+    "bool": true,
+    "null": null,
+    "array": [
+        0, 1, 2
+    ],
+    "map": {
+        "key1": "val1",
+        "key2": "val2"
+    }
+}
