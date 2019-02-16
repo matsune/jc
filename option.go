@@ -45,7 +45,7 @@ func NumberColor(c *color.Color) Option {
 }
 
 func (j *jc) SetNumberColor(c *color.Color) {
-	j.numberColor = c
+	j.numColor = c
 }
 
 func StringColor(c *color.Color) Option {
@@ -55,7 +55,7 @@ func StringColor(c *color.Color) Option {
 }
 
 func (j *jc) SetStringColor(c *color.Color) {
-	j.stringColor = c
+	j.strColor = c
 }
 
 func BoolColor(c *color.Color) Option {
@@ -66,4 +66,14 @@ func BoolColor(c *color.Color) Option {
 
 func (j *jc) SetBoolColor(c *color.Color) {
 	j.boolColor = c
+}
+
+func NullColor(c *color.Color) Option {
+	return func(j *jc) {
+		j.SetNullColor(c)
+	}
+}
+
+func (j *jc) SetNullColor(c *color.Color) {
+	j.nullColor = c
 }

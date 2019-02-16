@@ -10,12 +10,13 @@ import (
 )
 
 type jc struct {
-	indent      string
-	writer      io.Writer
-	keyColor    *color.Color
-	numberColor *color.Color
-	stringColor *color.Color
-	boolColor   *color.Color
+	indent    string
+	writer    io.Writer
+	keyColor  *color.Color
+	numColor  *color.Color
+	strColor  *color.Color
+	boolColor *color.Color
+	nullColor *color.Color
 }
 
 func New(opts ...Option) *jc {
@@ -57,11 +58,13 @@ func (j *jc) parse(v interface{}, depth int) error {
 	var err error
 	switch val := v.(type) {
 	case float64:
-		err = j.writef(j.numberColor, "%v", val)
+		err = j.writef(j.numColor, "%v", val)
 	case string:
-		err = j.writef(j.stringColor, "%q", val)
+		err = j.writef(j.strColor, "%q", val)
 	case bool:
 		err = j.writef(j.boolColor, "%v", val)
+	case nil:
+		err = j.write(j.nullColor, "null")
 	case map[string]interface{}:
 		err = j.writeln(nil, "{")
 		if err != nil {
