@@ -9,6 +9,17 @@ import (
 	"github.com/fatih/color"
 )
 
+type JC interface {
+	Colorize(str string) error
+	SetIndent(i string)
+	SetWriter(w io.Writer)
+	SetKeyColor(c *color.Color)
+	SetNumberColor(c *color.Color)
+	SetStringColor(c *color.Color)
+	SetBoolColor(c *color.Color)
+	SetNullColor(c *color.Color)
+}
+
 type jc struct {
 	indent    string
 	writer    io.Writer
@@ -19,7 +30,7 @@ type jc struct {
 	nullColor *color.Color
 }
 
-func New(opts ...Option) *jc {
+func New(opts ...Option) JC {
 	j := &jc{
 		indent: "\t",
 		writer: os.Stdout,
