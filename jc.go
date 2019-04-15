@@ -9,7 +9,7 @@ import (
 	json "github.com/matsune/go-json"
 )
 
-type jc struct {
+type JC struct {
 	indent    string
 	writer    io.Writer
 	keyColor  *color.Color
@@ -19,8 +19,8 @@ type jc struct {
 	nullColor *color.Color
 }
 
-func New(opts ...Option) *jc {
-	j := &jc{
+func New(opts ...Option) *JC {
+	j := &JC{
 		indent:    "\t",
 		writer:    os.Stdout,
 		numColor:  color.New(color.Attribute(34)),
@@ -34,7 +34,7 @@ func New(opts ...Option) *jc {
 	return j
 }
 
-func (j *jc) Colorize(str string) error {
+func (j *JC) Colorize(str string) error {
 	v, err := json.Parse(str)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (j *jc) Colorize(str string) error {
 	return nil
 }
 
-func (j *jc) indentation(depth int) error {
+func (j *JC) indentation(depth int) error {
 	var err error
 	for i := 0; i < depth; i++ {
 		err = j.write(nil, j.indent)
@@ -54,7 +54,7 @@ func (j *jc) indentation(depth int) error {
 	return nil
 }
 
-func (j *jc) walk(v json.Value, nest int) error {
+func (j *JC) walk(v json.Value, nest int) error {
 	var err error
 	switch v := v.(type) {
 	case *json.ObjectValue:
@@ -129,7 +129,7 @@ func (j *jc) walk(v json.Value, nest int) error {
 	return err
 }
 
-func (j *jc) write(c *color.Color, a ...interface{}) error {
+func (j *JC) write(c *color.Color, a ...interface{}) error {
 	var err error
 	if c != nil {
 		_, err = c.Fprint(j.writer, a...)
@@ -139,7 +139,7 @@ func (j *jc) write(c *color.Color, a ...interface{}) error {
 	return err
 }
 
-func (j *jc) writef(c *color.Color, f string, a ...interface{}) error {
+func (j *JC) writef(c *color.Color, f string, a ...interface{}) error {
 	var err error
 	if c != nil {
 		_, err = c.Fprintf(j.writer, f, a...)
@@ -149,7 +149,7 @@ func (j *jc) writef(c *color.Color, f string, a ...interface{}) error {
 	return err
 }
 
-func (j *jc) writeln(c *color.Color, a ...interface{}) error {
+func (j *JC) writeln(c *color.Color, a ...interface{}) error {
 	var err error
 	if c != nil {
 		_, err = c.Fprintln(j.writer, a...)

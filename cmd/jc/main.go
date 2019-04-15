@@ -15,7 +15,15 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const version = "1.0"
+
 func main() {
+	for _, v := range os.Args {
+		if v == "-v" || v == "--version" {
+			fmt.Printf("jc version %s\n", version)
+			os.Exit(0)
+		}
+	}
 	if terminal.IsTerminal(0) {
 		return
 	}
