@@ -15,14 +15,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-type conf struct {
-	Key    string
-	Number string
-	String string
-	Bool   string
-	Null   string
-}
-
 func main() {
 	if terminal.IsTerminal(0) {
 		return
@@ -41,13 +33,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	c := conf{
-		Key:    "",
-		Number: "34",
-		String: "33",
-		Bool:   "31",
-		Null:   "36",
-	}
+	c := struct {
+		Key    string
+		Number string
+		String string
+		Bool   string
+		Null   string
+	}{}
 
 	confPath := filepath.Join(usr.HomeDir, ".jc.conf")
 	if _, err = os.Stat(confPath); !os.IsNotExist(err) {
@@ -58,48 +50,54 @@ func main() {
 		}
 	}
 
+	j := jc.New()
+
 	keys, err := splitAttributes(c.Key)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	keyColor := color.New(keys...)
+	if len(keys) > 0 {
+		j.SetKeyColor(color.New(keys...))
+	}
 
 	nums, err := splitAttributes(c.Number)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	numColor := color.New(nums...)
+	if len(nums) > 0 {
+		j.SetNumberColor(color.New(nums...))
+	}
 
 	strings, err := splitAttributes(c.String)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	strColor := color.New(strings...)
+	if len(strings) > 0 {
+		j.SetStringColor(color.New(strings...))
+	}
 
 	bools, err := splitAttributes(c.Bool)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	boolColor := color.New(bools...)
+	if len(bools) > 0 {
+		j.SetBoolColor(color.New(bools...))
+	}
 
 	nulls, err := splitAttributes(c.Null)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	nullColor := color.New(nulls...)
+	if len(nulls) > 0 {
+		j.SetNullColor(color.New(nulls...))
 
-	j := jc.New(
-		jc.KeyColor(keyColor),
-		jc.NumberColor(numColor),
-		jc.StringColor(strColor),
-		jc.BoolColor(boolColor),
-		jc.NullColor(nullColor),
-	)
+	}
+
 	if err := j.Colorize(string(b)); err != nil {
 		panic(err)
 	}
