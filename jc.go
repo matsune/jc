@@ -19,8 +19,8 @@ type JC struct {
 	nullColor *color.Color
 }
 
-func New(opts ...Option) *JC {
-	j := &JC{
+func New() *JC {
+	return &JC{
 		indent:    "\t",
 		writer:    os.Stdout,
 		numColor:  color.New(color.Attribute(34)),
@@ -28,10 +28,30 @@ func New(opts ...Option) *JC {
 		boolColor: color.New(color.Attribute(31)),
 		nullColor: color.New(color.Attribute(36)),
 	}
-	for _, opt := range opts {
-		opt(j)
-	}
-	return j
+}
+
+func (j *JC) SetWriter(w io.Writer) {
+	j.writer = w
+}
+
+func (j *JC) SetKeyColor(c *color.Color) {
+	j.keyColor = c
+}
+
+func (j *JC) SetNumberColor(c *color.Color) {
+	j.numColor = c
+}
+
+func (j *JC) SetStringColor(c *color.Color) {
+	j.strColor = c
+}
+
+func (j *JC) SetBoolColor(c *color.Color) {
+	j.boolColor = c
+}
+
+func (j *JC) SetNullColor(c *color.Color) {
+	j.nullColor = c
 }
 
 func (j *JC) Colorize(str string) error {
