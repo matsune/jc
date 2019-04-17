@@ -78,8 +78,14 @@ func (j *JC) walk(v json.Value, nest int) error {
 	var err error
 	switch v := v.(type) {
 	case *json.ObjectValue:
-		if err = j.writeln(nil, "{"); err != nil {
+		if err = j.write(nil, "{"); err != nil {
 			return err
+		}
+		isEmpty := len(v.KeyValues) == 0
+		if !isEmpty {
+			if err = j.writeln(nil); err != nil {
+				return err
+			}
 		}
 
 		nest++
@@ -107,12 +113,20 @@ func (j *JC) walk(v json.Value, nest int) error {
 		}
 		nest--
 
-		if err = j.indentation(nest); err != nil {
-			return err
+		if !isEmpty {
+			if err = j.indentation(nest); err != nil {
+				return err
+			}
 		}
 		err = j.write(nil, "}")
 	case *json.ArrayValue:
-		j.writeln(nil, "[")
+		j.write(nil, "[")
+		isEmpty := len(v.Values) == 0
+		if !isEmpty {
+			if err = j.writeln(nil); err != nil {
+				return err
+			}
+		}
 		nest++
 		for i, vv := range v.Values {
 			if err = j.indentation(nest); err != nil {
@@ -131,8 +145,10 @@ func (j *JC) walk(v json.Value, nest int) error {
 			}
 		}
 		nest--
-		if err = j.indentation(nest); err != nil {
-			return err
+		if !isEmpty {
+			if err = j.indentation(nest); err != nil {
+				return err
+			}
 		}
 		err = j.write(nil, "]")
 	case *json.IntValue:
