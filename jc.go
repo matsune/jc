@@ -77,13 +77,13 @@ func (j *JC) indentation(depth int) error {
 func (j *JC) walk(v json.Value, nest int) error {
 	var err error
 	switch v := v.(type) {
-	case *json.ObjectValue:
+	case *json.Object:
 		if err = j.writeln(nil, "{"); err != nil {
 			return err
 		}
 
 		nest++
-		for i, kv := range v.KeyValues {
+		for i, kv := range v.Pairs {
 			if err = j.indentation(nest); err != nil {
 				return err
 			}
@@ -96,7 +96,7 @@ func (j *JC) walk(v json.Value, nest int) error {
 				return err
 			}
 
-			if i < len(v.KeyValues)-1 {
+			if i < len(v.Pairs)-1 {
 				err = j.writeln(nil, ",")
 			} else {
 				err = j.writeln(nil)
@@ -111,7 +111,7 @@ func (j *JC) walk(v json.Value, nest int) error {
 			return err
 		}
 		err = j.write(nil, "}")
-	case *json.ArrayValue:
+	case *json.Array:
 		j.writeln(nil, "[")
 		nest++
 		for i, vv := range v.Values {
@@ -135,15 +135,15 @@ func (j *JC) walk(v json.Value, nest int) error {
 			return err
 		}
 		err = j.write(nil, "]")
-	case *json.IntValue:
+	case *json.Int:
 		err = j.write(j.numColor, v)
-	case *json.FloatValue:
+	case *json.Float:
 		err = j.write(j.numColor, v)
-	case *json.BoolValue:
+	case *json.Bool:
 		err = j.write(j.boolColor, v)
-	case *json.NullValue:
+	case *json.Null:
 		err = j.write(j.nullColor, v)
-	case *json.StringValue:
+	case *json.String:
 		err = j.write(j.strColor, v)
 	}
 	return err
